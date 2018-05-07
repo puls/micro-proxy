@@ -111,6 +111,7 @@ async function proxyRequest (req, res, dest) {
     method: req.method,
     headers: Object.assign({}, req.headers, { host: url.host }),
     body: req,
+    redirect: "manual",
     compress: false
   })
 
@@ -120,7 +121,11 @@ async function proxyRequest (req, res, dest) {
   // Forward headers
   const headers = proxyRes.headers.raw()
   for (const key of Object.keys(headers)) {
-    res.setHeader(key, headers[key])
+    let value = headers[key];
+    if (key === "location") {
+      value = value[0].replace(dest, "");
+    }
+    res.setHeader(key, value);
   }
 
   // Stream the proxy response
